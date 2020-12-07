@@ -151,29 +151,17 @@ fn main() {
     print_partition_info(&xs2);
     // 3. Creates one thread per partition and uses each thread to concurrently process one partition
     let mut intermediate_sums2 : Vec<usize> = Vec::new();
-
-    // Creating clone of data xs2
-  //  for a in 0..num_partitions {
-  //      let xs2_imposter = xs2[a].clone();
-   //     // Creating the threads 
-   //     for _b in 0..num_partitions {
-   //         let t = thread::spawn(move || map_data(&xs2_imposter));
-   //         // 4. Collects the intermediate sums from all the threads
-   //         for _c in 0..num_partitions {
-   //             let r = t.join().unwrap();
-   //             intermediate_sums2.push(r);
-    //        }
-   //     }
-    //}
-
-  // Testing the code
-  for i in 0..num_partitions {
-  let xs2_imposter = xs2[i].clone();
-  let t = thread::spawn(move || map_data(&xs2_imposter));
-  let r = t.join().unwrap();
-  intermediate_sums2.push(r);
-  }
-
+    let mut threads : Vec<std::thread::JoinHandle<usize>> = Vec::new();
+    for a in 0..num_partitions {
+        // Create a copy of the first xs2 and push into threads vector
+        let xs2_imposter = xs2[a].clone();
+        threads.push(thread::spawn(move || map_data(&xs2_imposter)));
+    }
+    for _b in 0..num_partitions {
+       // Get the return value from joining the threads then push to intermediate_sums2 vector
+       let r = threads.remove(0).join().unwrap();
+       intermediate_sums2.push(r); 
+    }
     // 5. Prints information about the intermediate sums
     println!("Intermediate sums = {:?}", intermediate_sums2);
     // 6. Calls reduce_data to process the intermediate sums
